@@ -1,4 +1,4 @@
-#Created by Andrew Lawson Cousineau
+#Created by Andrew Lawson
 
 
 #todo:
@@ -6,8 +6,8 @@
 #Make manual PDF opening work. Download-Firmware-PDF isn't triggered if info is unknown.
 #If unsuccessful at finding PDF, we should decrease firmware number to see if the firmware just doesn't exist for that printer.
 #If PDF works, but firmware version can't be found, show other available versions.
-#	Delete everything but the first number, then try, if fail, decrease number until version 3 has been attempted.
-#Download iTextsharp and extract.
+#Delete everything but the first number, then try, if fail, decrease number until version 3 has been attempted.
+#Under the impression that distributing itextsharp is legal for open source software. If I have misunderstood, make script Download iTextsharp and extract zip.
 
 #functions
 
@@ -28,6 +28,8 @@ function Check-for-iTextSharp {
     else {
         # The iTextSharp module and DLL are not found
         Write-Output "Provide the path to the iTextSharp DLL."
+		#From what I understand, this file can be distributed with open source software.
+		#It has been added to the github
 		#Write-Output "Do you want to download iTextSharp?"
 		#https://github.com/itext/itextsharp/releases/download/5.5.11/itextsharp-all-5.5.11.zip
 		#Inside file has other zip files. We want itextsharp-dll-core.zip
@@ -336,8 +338,7 @@ $printerscsv = ".\printers.csv"
 #$Firmwareversion = "4.11.2.1"
 #$FirmwareRevision = "2411177_063753"
 echo "This is Andrew Lawson's HP Printer Firmware downloader script"
-echo "If you have, or permit itextsharp.dll to be downloaded, it will completely automate the process."
-echo "It is very common and well known open source file. I would deem it safe"
+echo "Enjoy!"
 
 #write-Host "`nThis script will prompt you for Printer model, Firmware Version, and Firmware Code number. `nThis information be aquired from Webjet, or from a PDF that this script will open. `n" -ForegroundColor White
 #write-Host ">>>>Check documentation prior to using!!<<<<" -BackgroundColor red
