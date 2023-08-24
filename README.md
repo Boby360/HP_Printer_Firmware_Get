@@ -13,3 +13,7 @@ Over time I will clean this script and add more redundancy to it, but for the ti
 
 If you have an issue, please create an issue in the tabs above and I will gladly look into it.
 PRs welcome.
+
+
+I am under the impression that itextsharp version 5 can legally be distributed in open-source software.
+https://github.com/itext/itextsharp/
