@@ -1,7 +1,9 @@
 # HP_Firmware_Get
 
+This PowerShell script will help you to download the vast majority of the official HP Printer Firmware directly from HP. 
+It figures out the official links used by HP. If HP removes these links, the script will no longer work.
+
 ## How it works:
-This script will allow you to download the vast majority of HP printer firmware directly from HP.  
 It guesses what format the printer uses for firmware and stores it locally in printers.csv if it is not already stored there.  
 After successfully finding the changelog PDF for the desired firmware, it will search the PDF using iTextSharp for available firmware versions.  
 Once it finds something that matches your search parameters, it will display them for you to select which exact firmware you want.  
@@ -9,13 +11,13 @@ It will then generate a direct download link from HP and download the printer fi
 
 ## How to download:
 - On the right side, there is a section that says releases.
-- Click the latest version, and under Assets, download Source Code (zip)
+- Click the latest version, and under Assets, download Source Code (zip).
 
 ## How to use:
-- Extract the zip file
-- Right-click the HP_Firmware_get_dev_autoread.ps1 file and select Run with PowerShell
+- Extract the zip file.
+- Right-click the HP_Firmware_get_dev_autoread.ps1 file and select Run with PowerShell.
 - You will be prompted for a printer model number.
-  This is expecting a format like: E55650, M630, or PW586
+  This is expecting a format like: E55650, M630, or PW586.
 - Next, it will prompt you for a firmware version.
   This is expecting a format like: 5, 5.5, 5.5.0.3, etc.
 - The script will attempt to find firmware versions that match your request. If this succeeds, it will give you a list of options.
@@ -25,7 +27,7 @@ It will then generate a direct download link from HP and download the printer fi
 
 ## Features:
 - Printer firmware file format prediction logic.
-- Store predicted logic locally for future use (In printers.csv)
+- Store predicted logic locally for future use (In printers.csv).
 - Analyze HP firmware changelogs to detect available firmware versions.
 
 
