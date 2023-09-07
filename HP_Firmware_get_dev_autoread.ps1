@@ -1,13 +1,36 @@
 #Created by Andrew Lawson
 
 
-#todo:
-#If the firmware version and reivision are on seperate pages, it breaks.
-#Make manual PDF opening work. Download-Firmware-PDF isn't triggered if info is unknown.
-#If unsuccessful at finding PDF, we should decrease firmware number to see if the firmware just doesn't exist for that printer.
-#If PDF works, but firmware version can't be found, show other available versions.
+#Todo:
+
+#If PDF exists, but requested version can not be found, prompt for opening PDF and allow manual user entry.
+#Add 4 wide method, as E877 is 4 wide.
+#Remove verbose from M series.
 #Delete everything but the first number, then try, if fail, decrease number until version 3 has been attempted.
-#Under the impression that distributing itextsharp is legal for open source software. If I have misunderstood, make script Download iTextsharp and extract zip.
+#M405 and M405 has no posted firmware on its page, and only a firmware update utility.
+	#We could try and detect this if we were motivated.
+	#Website contains 002_2322C
+	#https://ftp.hp.com/pub/softlib/software13/FW_CPE_Commercial/M404-M405_8A/HP_LaserJet_Pro_M304_M305_M404_M405_series_FW_002_2322C.exe
+	#Release notes link might not be easy to figure out though.
+	#https://support.hp.com/soar-attachment/698/col91657-release_notes_2322c.html
+
+
+
+
+#####Bugs:
+#If unsuccessful at finding PDF, we should decrease and increase firmware number to see if the firmware just doesn't exist for that printer. (M506 max is 3.9.12)
+	#If unsuccessful, error out saying we can't figure out printer firmware format, or printer model is not valid. (ex. E82640 does not exist)
+	#If PDF works, but firmware version can't be found, show other available versions.
+	#CSV file format "could" be wrong, but very unlikely
+
+#If the firmware version and reivision are on seperate pages, it breaks.
+	#Haven't experienced this in a few months, but it was an issue.(Need to find printer model that still does this)
+
+#PW556 shows valid 5.5 firmware in PDF. Says "Success!!" but does not attempt to download firmware. (Is not in printers.csv)
+#PW586 works fine. (is in printers.csv)
+
+#####Notes:
+#M680 4.11.2.3 does not exist on repo anymore, but 4.12.0.1 does.
 
 #functions
 
@@ -287,13 +310,16 @@ function Download-Firmware {
 		[string]$existing_csv
     )
 $url = 'https://ftp.hp.com/pub/softlib/software13/printers/' + $model_p1 + '/' + $model_p2 +'_fs' + $Firmwareversion + '_fw_' + $FirmwareRevision + '.zip'
-$url
+
 
 try {
-	write-Host "Downloading...."
+	write-Host "Trying to download from this link"
+	write-Host $url
 	$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -URI $url -OutFile $file
 	write-Host "Downloaded. Enjoy!"
-	if ($existing_csv -eq 'False') {
+	#Why is there a "Please Enter to continue...:" between these two?
+	#This is placed here so if the download fails, it will skip it, right?
+	if ($exists_within_csv -eq 'False') {
 	Save-to-CSV -model $model -model_p1 $model_p1 -model_p2 $model_p2 -printercsv $printercsv
 	}
 	start-sleep 15
@@ -407,7 +433,8 @@ if ($firmware_pdf -eq $false ) {
 
 
 	 } else {
-    write-output "Printer model not found in printer.csv `n Lets try to figure it out."
+    write-output "Printer model not found in printers.csv `n Lets try to figure it out."
+	$exists_within_csv = 'False'
 	#this includes all of the searching stuff. Will be changed when we add more logic.
 
 
@@ -715,7 +742,6 @@ if ($model -like "PW*" -Or $model -like "pw*") {
 	#$model_lower = $model.Substring(0,1).ToLower()
 	$model_p1 = $model.ToUpper()
 	$model_p2 = $model.ToLower() #<-------------- Easier Method!!
-	
 	$firmware_pdf = Download-Firmware-PDF -model_p1 $model_p1 -model_p2 $model_p2 -Firmware_short $Firmware_short
 				if ($firmware_pdf -ne $false ) {
 					echo "Success!!"
@@ -723,6 +749,9 @@ if ($model -like "PW*" -Or $model -like "pw*") {
 				} else {
 					echo "No success!"
 				}
+
+
+
 }
 
 if ($model -like "M*" -Or $model -like "m*") {
