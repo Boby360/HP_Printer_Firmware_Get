@@ -14,7 +14,7 @@
 	#Release notes link might not be easy to figure out though.
 	#https://support.hp.com/soar-attachment/698/col91657-release_notes_2322c.html
 
-
+#Store firmware links for each printer so users do not need to run the script.
 
 
 #####Bugs:
@@ -122,11 +122,12 @@ function Find-DesiredVersion {
     if ($desiredVersions.Count -gt 0) {
         # Prompt the user to select the desired version if there are multiple matches
         if ($desiredVersions.Count -gt 1) {
-            Write-Host "Multiple versions matching '$DesiredVersion' found:"
+            Write-Host "Multiple FS $DesiredVersion versions found:"
             for ($i = 0; $i -lt $desiredVersions.Count; $i++) {
-                Write-Host "$($i + 1). $($desiredVersions[$i])"
+                Write-Host "$($i + 1)." -ForegroundColor green -NoNewline
+				Write-Host " $($desiredVersions[$i])"
             }
-            $selection = Read-Host "Enter the number corresponding to the desired version(NOT the version number)"
+            $selection = Read-Host "Enter the green number to select the firmware version"
             $index = $selection - 1
         } else {
             $index = 0
@@ -249,27 +250,59 @@ function Download-Firmware-PDF {
         [string]$model_p2,
 		[string]$Firmware_short
     )
-	
-        # Generate URL and attempt to curl HTTP code 200 again
+	$Firmware_short_orig = $Firmware_short
+		try {
+		Start-Sleep -milliseconds 500 #Reduce HP spam
+        # Try provided firmware number
         $readme_url = 'https://ftp.hp.com/pub/softlib/software13/printers/' + $model_p1 + '/readme_' + $model_p2 + '_fs' + $Firmware_short + '.pdf'
-	#try {
 		$response = Invoke-WebRequest -Uri $readme_url -Method Head -ErrorAction SilentlyContinue
+		write-host good
+		write-host $firmware_short
+		} catch {
+		try {
+		Start-Sleep -milliseconds 500 #Reduce HP spam
+		# Try one firmware version lower if provided fails.
+		$Firmware_short_minus = [int]$Firmware_short_orig
+		$Firmware_short_minus--
+		$readme_url = 'https://ftp.hp.com/pub/softlib/software13/printers/' + $model_p1 + '/readme_' + $model_p2 + '_fs' + $Firmware_short_minus + '.pdf'
+		$response = Invoke-WebRequest -Uri $readme_url -Method Head -ErrorAction SilentlyContinue
+		$Firmware_short = [String]$Firmware_short_minus
+		$Firmwareversion = $Firmware_short
+		write-host "`r`nThis printer does not have any detected firmware for FS $Firmware_short_orig `r`nhowever it does for FS $Firmware_short. Select a version below or hold ctrl+c to exit.`r`n" -ForegroundColor yellow
+		} catch {
+		try {
+		Start-Sleep -milliseconds 500 #Reduce HP spam
+		#try one firmware above if provided fails.
+		$Firmware_short_plus = [int]$Firmware_short
+		$Firmware_short_plus++
+		$readme_url = 'https://ftp.hp.com/pub/softlib/software13/printers/' + $model_p1 + '/readme_' + $model_p2 + '_fs' + $Firmware_short_plus + '.pdf'
+		$response = Invoke-WebRequest -Uri $readme_url -Method Head -ErrorAction SilentlyContinue
+		$fixed_firmware_short = $Firmware_short
+		$Firmware_short = [String]$Firmware_short_plus
+		$Firmwareversion = $Firmware_short
+		write-host "`r`nThis printer does not have any detected firmware for FS $Firmware_short_orig `r`nhowever it does for FS $Firmware_short. Select a version below or hold ctrl+c to exit.`r`n" -ForegroundColor yellow
+		} catch {}
+		}
+		}
 		
     if ($response.StatusCode -eq 200) {
-        Write-Host "Got 200"
+        #Write-Host "Got 200"
 		#Open in browser
 		$results = Check-for-iTextSharp -iTextSharpPath $iTextSharpPath
 		#$results
 		if (Check-for-iTextSharp -iTextSharpPath $iTextSharpPath) {
 			#echo "Check-for-iTextSharp success"
 			#$ProgressPreference = 'SilentlyContinue'; 
-			$file = 'readme_' + $model + '_fs' + $Firmware_short + '.pdf'
-			$OutFile = 'C:\Users\andre\Downloads\' + $file
+			#$file = 'readme_' + $model + '_fs' + $Firmware_short + '.pdf'
+			$OutFile = $PSScriptRoot + '\readme_' + $model + '_fs' + $Firmware_short + '.pdf'
 			Invoke-WebRequest -Uri $readme_url -OutFile $OutFile
 			#This is being tested:
+			#if ($fixed_firmware_short -eq 0) {
 			$result = Find-DesiredVersion -PdfFilePath $OutFile -DesiredVersion $Firmwareversion
-			Write-Host "test"
-			Write-Host $result
+			#} else {
+			#$result = Find-DesiredVersion -PdfFilePath $OutFile -DesiredVersion $Firmware_short
+			#}
+			#Write-Host "Spitting out stuff"
 			#echo "out of function"
 			# Extract the version and revision from the output
 			$Firmwareversion = $result.Version
@@ -286,8 +319,23 @@ function Download-Firmware-PDF {
 		}
 		}
 	} else {
-	Write-Host "After response"
-	#} catch {
+	#Write-Host "After response"
+		#Try reducing Firmware_short from default, then try increasing Firmware_short.
+		#Firmware_short will just be, 3, 4, 5
+		
+		#$Firmware_short_minus = [int]$Firmware_short		
+		#$Firmware_short_minus--
+		#Write-Host $Firmware_short_minus
+		#If successful, $Firmware_short = [String]$Firmware_short_minus
+		
+		#$Firmware_short_plus = [int]$Firmware_short
+		#$Firmware_short_plus_type = $Firmware_short_plus.GetType()
+		#Write-Host "The variable type is: $Firmware_short_plus_type"
+		
+		#$Firmware_short_plus++
+		#Write-Host $Firmware_short_plus
+		#If successful, $Firmware_short = [String]$Firmware_short_plus
+		#} catch {
 		return $false
 	}
 Write-Host "End of function"
@@ -370,6 +418,7 @@ echo "Enjoy!"
 #write-Host ">>>>Check documentation prior to using!!<<<<" -BackgroundColor red
 start-sleep 2
 $Printermodel = Read-Host -Prompt 'Insert printer model'
+$Printermodel = $Printermodel.ToUpper()
 $Firmwareversion = Read-Host -Prompt 'Insert firmware version'
 $Firmware_short = $Firmwareversion -split "\." | Select-Object -First 1
 #write-Host $Firmware_short
@@ -391,10 +440,10 @@ $model_p1 = ($csv.Where({[string]$_.Model -like "*$Printermodel"})).Model_p1
 $model_p2 = ($csv.Where({[string]$_.Model -like "*$Printermodel"})).Model_p2
 
 $firmware_pdf = Download-Firmware-PDF -model_p1 $model_p1 -model_p2 $model_p2 -Firmware_short $Firmware_short -existing_csv $existing_csv
-echo "after function"
+#echo "after function"
 #$firmware_pdf
 if ($firmware_pdf -eq $false ) {
-	echo "The CSV file has the wrong formatting"
+	echo "The CSV file has the wrong formatting, or the printer only supports significantly higher/lower firmware version."
 	break
 	#Could make this delete the line.
 }
@@ -1062,7 +1111,6 @@ $Fileexists = Test-Path -Path ./$file -PathType Leaf
 if ($Fileexists -eq 'True' ) {
 	$download = Read-Host -Prompt 'File already exists locally. Do you want to redownload? type y if yes.'
 	if ($download -eq "y") {
-		write-host "yes"
 		$firmware_pdf = Download-Firmware -model_p1 $model_p1 -model_p2 $model_p2 -FirmwareRevision $FirmwareRevision -Firmwareversion $Firmwareversion
 	} else {
 	Write-Host "File Already Exists. Not downloading."
