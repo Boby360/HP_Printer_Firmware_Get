@@ -1,4 +1,4 @@
-# HP_Firmware_Get
+# HP_Printer_Firmware_Get
 
 This PowerShell script will help you to download the vast majority of the official HP Printer Firmware directly from HP. 
 It figures out the official links used by HP. If HP removes these links, the script will no longer work.
