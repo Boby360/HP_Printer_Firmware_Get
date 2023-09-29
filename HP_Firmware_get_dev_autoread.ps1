@@ -17,6 +17,42 @@
 #Store firmware links for each printer so users do not need to run the script.
 
 
+#HP "New" "Managed" printer list.
+#What can we figure out, and what can't we?
+#What is possible to access, and what isn't?
+
+####Not E series....
+#4301-4303 uses different format. https://ftp.hp.com/pub/softlib/software13/FW_Commercial/4301_4303/HP_LaserJet_Pro_MFP_4301-4303_Firmware_release_6.12.1.12-202306030312.bdl
+#Unsucessful: https://ftp.hp.com/pub/softlib/software13/FW_Commercial/4301_4303/HP_LaserJet_Pro_MFP_4301-4303_Firmware_release_6.12.0.2002-202304281920.bdl
+#Release Notes: https://support.hp.com/soar-attachment/902/col118163-releasenotesfiles_6.12.1.12-202306030312.html
+#Firmware Update Utility: https://ftp.hp.com/pub/softlib/software13/printers/4301-4303/HP_LaserJet_Pro_MFP_4301-4303_Firmware_6.12.1.12-202306030312.exe
+#While release notes contains 6.12.0 and 6.12.1, we may not be able to figure out old firmware.
+
+#E785** is E78523 and E78528.
+#Max current firmware is 5.6.0.2 (May 21) using typical format.
+
+#E87740-70
+#Example firmware: https://ftp.hp.com/pub/softlib/software13/printers/E87740_50_60_70/E87740_50_60_70_fs5.6.0.2_fw_2506649_040426.zip
+#Release Notes: http://ftp.hp.com/pub/softlib/software13/printers/E87740_50_60_70/readme_E87740_50_60_70_fs5.pdf
+
+#M478-479
+#No publicly posted firmware
+#Release notes: https://support.hp.com/soar-attachment/433/col91648-releasenotesfiles_002_2322c.html (Does contain good amount of history)
+#Firmware Update Utility: https://ftp.hp.com/pub/softlib/software13/FW_CPE_Commercial/M478-M479_MA/HP_Color_LaserJet_Pro_M478_M479_series_FW_002_2322C.exe
+
+#E826** E82650 E82660 E82670
+#Example firmware: https://ftp.hp.com/pub/softlib/software13/printers/E82650_60_70/E82650_60_70_fs5.6.0.2_fw_2506649_040423.zip
+#Changelog: http://ftp.hp.com/pub/softlib/software13/printers/E82650_60_70/readme_E82650_60_70_fs5.pdf
+
+#E731** E73130_E73135_E73140
+#Example Firmware https://ftp.hp.com/pub/softlib/software13/printers/E73130_35_40/E73130_35_40_fs5.6.0.2_fw_2506649_040417.zip
+
+#E786**
+#Example FIrmware: https://ftp.hp.com/pub/softlib/software13/printers/E78625_30_35/E78625_30_35_fs5.6.0.2_fw_2506649_040420.zip
+#Has both Firmware Readme: http://ftp.hp.com/pub/softlib/software13/printers/E78625_30_35/readme_E78625_30_35_fs5.pdf
+#and release notes: https://support.hp.com/soar-attachment/81/col113680-readmefs5.html
+
+
 #####Bugs:
 #If unsuccessful at finding PDF, we should decrease and increase firmware number to see if the firmware just doesn't exist for that printer. (M506 max is 3.9.12)
 	#If unsuccessful, error out saying we can't figure out printer firmware format, or printer model is not valid. (ex. E82640 does not exist)
@@ -509,13 +545,13 @@ if ($model -like "E*") {
 		#echo "Did i break?"
 	} 
 	#else {
-	#	echo "No success!"
+	#	#echo "No success!"
 	#}
 	} catch {}
 	
 	######Two printers share same firmware
 	try {
-	echo "Trying double wide"
+	echo "Looking for 2 wide firmware"
 	# Extract the last two digits of the model
     $lastTwoDigits = $model.Substring($model.Length - 2)
 	#echo "last two digits" + $lastTwoDigits
@@ -534,7 +570,7 @@ if ($model -like "E*") {
 		echo "Success!!"
 		break
 	} else {
-		echo "No success!"
+		#echo "No success!"
 	}
 	}
 	} catch {}
@@ -550,7 +586,7 @@ if ($model -like "E*") {
 		echo "Success!!"
 		break
 	} else {
-		echo "No success!"
+		#echo "No success!"
 	}
 	} catch {}
 	
@@ -564,7 +600,7 @@ if ($model -like "E*") {
 		echo "Success!!"
 		break
 	} else {
-		echo "No success!"
+		#echo "No success!"
 	}
 	} catch {}
 	
@@ -578,7 +614,7 @@ if ($model -like "E*") {
 		echo "Success!!"
 		break
 	} else {
-		echo "No success!"
+		#echo "No success!"
 	}
 	} catch {}
 	
@@ -592,7 +628,7 @@ if ($model -like "E*") {
 		echo "Success!!"
 		break
 	} else {
-		echo "No success!"
+		#echo "No success!"
 	}
 	} catch {}
 	
@@ -601,7 +637,7 @@ if ($model -like "E*") {
 	try {
 	Start-Sleep -Milliseconds 200
 
-		echo $model + "3 wide beginning"
+		echo "Looking for 3 wide Firmware"
 		#Common Logic:
 		if($lastTwoDigits -eq 25) {
 		$model_p1 = $model_short + "25_30_35"
@@ -613,6 +649,8 @@ if ($model -like "E*") {
 		echo $model
 		$model_p1 = $model_short + "25_30_35"
 		}
+		#30_35_40 now exists.
+		#E731**
 		if($lastTwoDigits -eq 40) {
 		$model_p1 = $model_short + "40_50_60"
 		}
@@ -635,7 +673,7 @@ if ($model -like "E*") {
 			break
 			echo "Did i break?"
 		} else {
-			echo "No success!"
+			#echo "No success!"
 		}
 		
 		if($lastTwoDigits -eq 50) {
@@ -649,7 +687,7 @@ if ($model -like "E*") {
 				break
 				echo "Did i break?"
 			} else {
-				echo "No success!"
+				#echo "No success!"
 			}
 			} catch {
 			$model_p1 = $model_short + "40_50_60"
@@ -659,7 +697,7 @@ if ($model -like "E*") {
 							break
 							echo "Did i break?"
 						} else {
-							echo "No success!"
+							#echo "No success!"
 						}
 						}
 		}
@@ -675,7 +713,7 @@ if ($model -like "E*") {
 				break
 				echo "Did i break?"
 			} else {
-				echo "No success!"
+				#echo "No success!"
 			}
 			} catch {
 			$model_p1 = $model_short + "40_50_60"
@@ -685,7 +723,7 @@ if ($model -like "E*") {
 				break
 				echo "Did i break?"
 			} else {
-				echo "No success!"
+				#echo "No success!"
 			}
 			}
 		}
@@ -702,7 +740,7 @@ if ($model -like "E*") {
 				break
 				echo "Did i break?"
 			} else {
-				echo "No success!"
+				#echo "No success!"
 			}
 	
 	} catch {}
@@ -716,7 +754,7 @@ if ($model -like "E*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 	
@@ -729,7 +767,7 @@ if ($model -like "E*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 	
@@ -742,7 +780,7 @@ if ($model -like "E*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -756,7 +794,7 @@ if ($model -like "E*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -769,16 +807,40 @@ if ($model -like "E*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 
+
+#####################################four printers share same firmware
+	try {
+	Start-Sleep -Milliseconds 200
+
+		echo "Looking for 4 wide firmware"
+		#Common Logic:
+		#Right now only know of the E877 with quad 
+		#write-host $Printermodel
+		if($Printermodel -like "E877*") {
+		$model_p1 = $model_short + "40_50_60_70"
+		}
+
+		$firmware_pdf = Download-Firmware-PDF -model_p1 $model_p1 -model_p2 $model_p1 -Firmware_short $Firmware_short
+		if ($firmware_pdf -ne $false ) {
+			echo "Success!!"
+			break
+			echo "Did i break?"
+		} else {
+			#echo "No success!"
+		}
+		
+		
 	Write-Host "Unsuccessful"
 	echo "End of Continue"
 	$bruteforce_fail = "y"
 	break
 
-	}#end of continue
+	} catch {}
+	}	#end of continue
 	$model_p2 = $model_p1
 	echo "End of E"
 }#end of  E
@@ -796,7 +858,7 @@ if ($model -like "PW*" -Or $model -like "pw*") {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 
 
@@ -868,7 +930,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 	#$firmware_pdf
@@ -882,7 +944,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 	
@@ -925,7 +987,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -937,7 +999,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -949,7 +1011,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -978,7 +1040,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -989,7 +1051,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -1000,7 +1062,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -1011,7 +1073,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -1030,7 +1092,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 
@@ -1041,7 +1103,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 		
@@ -1060,7 +1122,7 @@ while ($continue -eq 1) {
 					echo "Success!!"
 					break
 				} else {
-					echo "No success!"
+					#echo "No success!"
 				}
 		} catch {}
 
