@@ -8,19 +8,24 @@ REM set "batchfile=%~f0"
 REM Extract the directory from the batch file path
 set "batchdir=%~dp0"
 
-REM echo %batchdir%
 
-REM checking if script ran as Administrator    
+Powershell.exe -executionpolicy bypass -Command %batchdir%HP_Firmware_get_dev_autoread.ps1
+
+if %errorlevel% neq 0 (
+    echo Failed
+	REM checking if script ran as Administrator    
     net session >nul 2>&1
     if !errorLevel! == 0 (
 	echo 
     ) else (
-        echo You did not run this script as an Administrator.
-		echo Right click this file, and select "Run as administrator".
-		echo If you do not have Administrator privileges, you can't use this script.
+        echo It seems like you might need to run this script as an Administrator.
+		echo Right click this file, and select "Run as administrator" if possible.
 		pause
 		exit
     )
-pause
-Powershell.exe -executionpolicy bypass -Command %batchdir%HP_Firmware_get_dev_autoread.ps1
+) else (
+    REM echo PowerShell command succeeded!
+    REM Do something here if the command succeeds
+)
+
 pause
