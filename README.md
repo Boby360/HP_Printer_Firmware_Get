@@ -9,18 +9,13 @@ After successfully finding the changelog PDF for the desired firmware, it will s
 Once it finds something that matches your search parameters, it will display them for you to select which exact firmware you want.  
 It will then generate a direct download link from HP and download the printer firmware!  
 
-## Requirements
-- A computer with a Unrestricted PowerShell execution policy  
-or  
-- A computer with Administrative access (Use the powershell_restrict_bypass.bat)
-
 ## How to download:
 - On the right side, there is a section that says releases.
 - Click the latest version, and under Assets, download Source Code (zip).
 
 ## How to use:
 - Extract the zip file.
-- Right-click the HP_Firmware_get_dev_autoread.ps1 file and select Run with PowerShell.
+- Double click Run_script
 - You will be prompted for a printer model number.
   This is expecting a format like: E55650, M630, or PW586.
 - Next, it will prompt you for a firmware version.
