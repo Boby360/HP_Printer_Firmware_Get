@@ -419,7 +419,7 @@ try {
 	break
 	}
 catch { 
-"Error occured. Verify Firmware code and Firmware version matches `nIf you are certain everything is right, HP may not have this firmware exposed. `nContact Renee or the current HP rep"
+"Error occured. Verify Firmware code and Firmware version matches `nIf you are certain everything is right, HP may not have this firmware exposed. `nIf you know of an HP Rep, contact them."
 start-sleep 20
 Exit
 }
@@ -468,11 +468,15 @@ $Firmwareversion = Read-Host -Prompt 'Insert firmware version'
 $Firmware_short = $Firmwareversion -split "\." | Select-Object -First 1
 #write-Host $Firmware_short
 
-#Trim any spaces user may have added.
+#Trim any spaces or extra periods user may have added.
 $Printermodel = $Printermodel.Trim()
+$Printermodel = $Printermodel.TrimEnd(".")
 $Firmwareversion = $Firmwareversion.Trim()
+$Firmwareversion = $Firmwareversion.TrimEnd(".")
 
-#Start getting info
+
+
+#Verify we have the printer.csv file. If we don't, download it.
 try {
 	$csv = Import-Csv -Path $printerscsv -header Model,Model_p1,Model_p2,Part_num
 	$existing_csv = 'True'
@@ -489,6 +493,7 @@ try {
 	
 }
 
+#Check to see if the printer model is in the CSV file.
 if (($csv.Model).contains($Printermodel)) {
 $model = ($csv.Where({[string]$_.Model -like "*$Printermodel"})).Model
 $model_p1 = ($csv.Where({[string]$_.Model -like "*$Printermodel"})).Model_p1
@@ -496,7 +501,11 @@ $model_p2 = ($csv.Where({[string]$_.Model -like "*$Printermodel"})).Model_p2
 
 $firmware_pdf = Download-Firmware-PDF -model_p1 $model_p1 -model_p2 $model_p2 -Firmware_short $Firmware_short -existing_csv $existing_csv
 #echo "after function"
-#$firmware_pdf
+
+
+
+
+#If Printer is in CSV, but doesn't work.
 if ($firmware_pdf -eq $false ) {
 	echo "The CSV file has the wrong formatting, or the printer only supports significantly higher/lower firmware version."
 	break
@@ -535,22 +544,48 @@ if ($firmware_pdf -eq $false ) {
 #Once we figure it out, should we store it locally??
 
 
-
+#If printer is NOT in CSV at all. Try to update CSV, if still it doesn't work, then move to guessing logic.
 	 } else {
-    write-output "Printer model not found in printers.csv `n Lets try to figure it out."
+	$lastmodified = (Get-Item .\printers.csv).LastWriteTime
+	$currenttime = Get-Date
+	$difference = $currenttime - $lastmodified
+	$maxage = New-TimeSpan -Minutes 15
+	if ($difference -gt $maxage) {
+		 write-output "Printer model not found in printers.csv `nDownloading a new copy. "
+		$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -URI "https://raw.githubusercontent.com/Boby360/HP_Printer_Firmware_Get/main/printers.csv" -OutFile .\printers.csv
+		$firmware_pdf = Download-Firmware-PDF -model_p1 $model_p1 -model_p2 $model_p2 -Firmware_short $Firmware_short -existing_csv $existing_csv
+		if ($firmware_pdf -eq $false ) {
+		Write-Host "I don't think this printer model exists, or the major firmware firmware version does not exist. `nLets try to find it using some logic anyways."
+		$uselogic = "True"
+		
+		#this includes all of the searching stuff. Will be changed when we add more logic.
+		$exists_within_csv = 'False'
+		}
+	} else {
+		write-output "Printer model not found in the newest copy of printers.csv, or major firmware version  `nLets apply some guesswork."
+		$uselogic = "True"
+		
+		#this includes all of the searching stuff. Will be changed when we add more logic.
+		$exists_within_csv = 'False'
+		
+	}
 	#Lets try downloading a updated version.
 	#https://raw.githubusercontent.com/Boby360/HP_Printer_Firmware_Get/main/printers.csv
 	#Should we combine user aquired data, if so, compare between what is local and what is remote.
 	#Could use a hash to verify if it has changed, or download and compare file lengths, or do an actual comparison.
 	#If we do a hash, if we force user to restart script after downloading, we won't be in an endless loop, if the comparison is in this location.
 	#Could compare hash and length, but no guarantee.
+	#Could check date modified to figure if we have downloaded a copy very recently.
 	
-	$exists_within_csv = 'False'
-	#this includes all of the searching stuff. Will be changed when we add more logic.
+	
 
 
+	 }
 ##################################################################################################################################
 ##################################################################################################################################
+
+###Maybe make this whole thing a function????
+if ($uselogic -eq 'True') {
 $model = $Printermodel
 [int]$five = 5
 [int]$ten = 10
