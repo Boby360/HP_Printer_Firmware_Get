@@ -118,7 +118,8 @@ function Find-DesiredVersion {
     $revisions = @()
     $previousLine = ""
     $currentLine = ""
-
+	
+	try {
     # Iterate through each page in the PDF and extract the text
     for ($page = 1; $page -le $reader.NumberOfPages; $page++) {
         $strategy = New-Object iTextSharp.text.pdf.parser.SimpleTextExtractionStrategy
@@ -140,7 +141,15 @@ function Find-DesiredVersion {
 
     # Close the reader object
     $reader.Close()
-
+	} catch {
+		#If itextsharp is local, but windows is blocking it. (Had it happen on my Windows 10 desktop)
+		Write-Host "Its possible that your itextsharp dll file is being blocked by windows. \n If you right click it, and go to properties, at the very bottom there is a unblock button."
+		Write-Host "Please do this to use this functionality, or delete the dll file to use without it."
+		#Running without it may or may not work. Will need to verify.
+		Start-Sleep -seconds 15
+		Exit
+		
+	}
     # Remove duplicates from versions and revisions
     $versions = $versions | Select-Object -Unique
     $revisions = $revisions | Select-Object -Unique
@@ -279,7 +288,6 @@ function Find-DesiredVersion_test {
     return "Desired Version not found."
 }
 
-
 function Download-Firmware-PDF {
     param (
         [string]$model_p1,
@@ -376,6 +384,7 @@ function Download-Firmware-PDF {
 	}
 Write-Host "End of function"
 }
+
 Function Manualy-Aquire-Info {
 
 write-Host "Find a section in this PDF that contains the firmware version you want, and a firmware revision. `nWhen you find it, come back and click the Enter key."
@@ -459,15 +468,25 @@ $Firmwareversion = Read-Host -Prompt 'Insert firmware version'
 $Firmware_short = $Firmwareversion -split "\." | Select-Object -First 1
 #write-Host $Firmware_short
 
+#Trim any spaces user may have added.
+$Printermodel = $Printermodel.Trim()
+$Firmwareversion = $Firmwareversion.Trim()
+
 #Start getting info
 try {
 	$csv = Import-Csv -Path $printerscsv -header Model,Model_p1,Model_p2,Part_num
 	$existing_csv = 'True'
-}
-catch
-{
-	$existing_csv = 'False'
-	Write-Host "Unable to find printers.csv file. I will create one!"
+} catch {
+	Write-Host "Unable to find printers.csv file. I will download the newest version from Github."
+	$ProgressPreference = 'SilentlyContinue'; Invoke-WebRequest -URI "https://raw.githubusercontent.com/Boby360/HP_Printer_Firmware_Get/main/printers.csv" -OutFile .\printers.csv
+		try {
+		$csv = Import-Csv -Path $printerscsv -header Model,Model_p1,Model_p2,Part_num
+		$existing_csv = 'True'
+		} catch {
+		Write-Host "Attempted to download new printers.csv file but still unable to import."
+		$existing_csv = 'False'
+		}
+	
 }
 
 if (($csv.Model).contains($Printermodel)) {
@@ -519,6 +538,13 @@ if ($firmware_pdf -eq $false ) {
 
 	 } else {
     write-output "Printer model not found in printers.csv `n Lets try to figure it out."
+	#Lets try downloading a updated version.
+	#https://raw.githubusercontent.com/Boby360/HP_Printer_Firmware_Get/main/printers.csv
+	#Should we combine user aquired data, if so, compare between what is local and what is remote.
+	#Could use a hash to verify if it has changed, or download and compare file lengths, or do an actual comparison.
+	#If we do a hash, if we force user to restart script after downloading, we won't be in an endless loop, if the comparison is in this location.
+	#Could compare hash and length, but no guarantee.
+	
 	$exists_within_csv = 'False'
 	#this includes all of the searching stuff. Will be changed when we add more logic.
 
@@ -1151,8 +1177,9 @@ start $readme_url
 #start "http://ftp.hp.com/pub/softlib/software13/printers/LJM607_608_609/readme_ljM607_608_609_fs5.pdf"
 }
 }
-$FirmwareRevision = $firmware_pdf.Revision
-$Firmwareversion = $firmware_pdf.Version
+#Converting to string as TrimEnd did not work.
+$FirmwareRevision = [String]$firmware_pdf.Revision
+$Firmwareversion = [String]$firmware_pdf.Version
 
 if ($FirmwareRevision -eq $null ){
 $FirmwareRevision = Read-Host -Prompt 'Insert firmware revision. (Example: 2506116_037317)'
@@ -1165,9 +1192,9 @@ if ($model_colour_cap  -like "C*" ){
 }
 
 #Just incase
-
-$Firmwareversion = $Firmwareversion.TrimEnd()
-$FirmwareRevision = $FirmwareRevision.TrimEnd()
+#Trim just removes extra spaces.
+$Firmwareversion = $Firmwareversion.Trim()
+$FirmwareRevision = $FirmwareRevision.Trim()
 $file = $model_p2 +'_fs' + $Firmwareversion + '_fw_' + $FirmwareRevision + '.zip'
 $Fileexists = Test-Path -Path ./$file -PathType Leaf
 if ($Fileexists -eq 'True' ) {
