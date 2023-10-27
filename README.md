@@ -42,7 +42,7 @@ PRs welcome.
 Some printers have firmware stored in either a more unique format or only software to update is posted.
 The below printers are known printers that will not work with this script.
 - M304-M305
-- M404-405
+- M404-M405
 - 4301-4303
 
 ## Dependencies:
