@@ -38,6 +38,13 @@ Over time I will clean this script and add more redundancy to it, but for the ti
 If you have an issue, please create an issue in the tabs above and I will gladly look into it.  
 PRs welcome.  
 
+## Unsupported printers:
+Some printers have firmware stored in either a more unique format or only software to update is posted.
+The below printers are known printers that will not work with this script.
+- M304-M305
+- M404-405
+- 4301-4303
+
 ## Dependencies:
 [iTextSharp 5.5.10](https://github.com/itext/itextsharp/)  
       I am under the impression that itextsharp version 5 can legally be distributed in open-source software.  
